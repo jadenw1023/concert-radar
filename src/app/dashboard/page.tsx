@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect} from "react";
+import { useSession } from "next-auth/react";
 
 interface Artist {
   id: string;
@@ -8,8 +9,9 @@ interface Artist {
 }
 
 export default function Dashboard() {
-  const [topArtists, setTopArtists] = useState<Artist[]>([]);
-const [loading, setLoading] = useState(true);
+    const { data: session } = useSession();
+    const [topArtists, setTopArtists] = useState<Artist[]>([]);
+    const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchTopArtists() {
@@ -30,6 +32,10 @@ const [loading, setLoading] = useState(true);
     fetchTopArtists();
   }, []);
 
+      if (!session) {
+        return <p>Please sign in to view your top artists.</p>;
+    }
+    
   return (
   <div>
     <h1>Your Top Artists</h1>

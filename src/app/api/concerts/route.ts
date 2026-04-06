@@ -22,6 +22,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to fetch concerts" }, { status: response.status });
   }
 
-  const data = await response.json();
-  return NextResponse.json(data);
+const data = await response.json();
+
+const concerts = data._embedded?.events?.map((event: any) => ({
+  name: event.name,
+  date: event.dates.start.localDate,
+  venueName: event._embedded.venues[0].name,
+  city: event._embedded.venues[0].city.name,
+  url: event.url,
+})) || [];
+
+return NextResponse.json(concerts);
 }

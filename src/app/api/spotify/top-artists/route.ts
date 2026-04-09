@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -14,11 +15,29 @@ export async function GET() {
       Authorization: `Bearer ${session.accessToken}`,
     },
   });
-  
-  if (!response.ok) { 
+
+  if (!response.ok) {
     return new Response("Failed to fetch top artists", { status: response.status });
   }
 
   const data = await response.json();
+
+  // Delete old artists for this user
+  await prisma.topArtist.deleteMany({
+    where: { userId: session.spotifyId },
+  });
+
+  // Save new artists
+  for (const artist of data.items) {
+    await prisma.topArtist.create({
+      data: {
+        spotifyArtistId: artist.id,
+        name: artist.name,
+        imageUrl: artist.images[0]?.url || "",
+        userId: session.spotifyId,
+      },
+    });
+  }
+
   return NextResponse.json(data);
 }

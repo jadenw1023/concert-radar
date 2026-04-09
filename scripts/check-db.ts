@@ -8,8 +8,10 @@ const prisma = new PrismaClient({
 
 async function main() {
   const users = await prisma.user.findMany();
-  console.log("Users found:", users.length);
   console.log("Users:", users);
+
+  const artists = await prisma.topArtist.findMany();
+  console.log("Artists:", artists);
 }
 
 main().then(() => process.exit(0));

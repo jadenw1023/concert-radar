@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -10,6 +11,13 @@ export async function GET() {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  // Check cache first
+  const cached = await redis.get("top-artists:" + session.spotifyId);
+  if (cached) {
+    return NextResponse.json(cached);
+  }
+
+  // No cache, fetch from Spotify
   const response = await fetch("https://api.spotify.com/v1/me/top/artists?limit=20&time_range=long_term", {
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
@@ -22,19 +30,19 @@ export async function GET() {
 
   const data = await response.json();
 
-// Delete old concerts for this user's artists
-await prisma.concert.deleteMany({
-  where: {
-    topArtist: {
-      userId: session.spotifyId,
+  // Delete old concerts for this user's artists
+  await prisma.concert.deleteMany({
+    where: {
+      topArtist: {
+        userId: session.spotifyId,
+      },
     },
-  },
-});
+  });
 
-// Delete old artists
-await prisma.topArtist.deleteMany({
-  where: { userId: session.spotifyId },
-});
+  // Delete old artists
+  await prisma.topArtist.deleteMany({
+    where: { userId: session.spotifyId },
+  });
 
   // Save new artists
   for (const artist of data.items) {
@@ -47,6 +55,9 @@ await prisma.topArtist.deleteMany({
       },
     });
   }
+
+  // Save to cache for 6 hours
+  await redis.set("top-artists:" + session.spotifyId, data, { ex: 21600 });
 
   return NextResponse.json(data);
 }

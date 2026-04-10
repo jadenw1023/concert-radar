@@ -12,6 +12,9 @@ async function main() {
 
   const artists = await prisma.topArtist.findMany();
   console.log("Artists:", artists);
+
+  const concerts = await prisma.concert.findMany();
+  console.log("Concerts:", concerts);
 }
 
 main().then(() => process.exit(0));

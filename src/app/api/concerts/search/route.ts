@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { redis } from "@/lib/redis";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -18,6 +19,13 @@ export async function GET(request: Request) {
   }
 
   const artistNames = artists.split(",");
+
+  const cacheKey = "concerts:" + session.spotifyId;
+
+  const cached = await redis.get(cacheKey);
+if (cached) {
+  return NextResponse.json(cached);
+}
 
   const promises = artistNames.map((artist) => {
     const params = new URLSearchParams();
@@ -80,6 +88,6 @@ export async function GET(request: Request) {
   });
 }
   }
-
+  await redis.set(cacheKey, concerts, { ex: 21600 });
   return NextResponse.json(concerts);
 }

@@ -58,7 +58,7 @@ Browser → Next.js API Routes → Spotify / Ticketmaster APIs
 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/concert-radar.git
+git clone https://github.com/jadenw1023/concert-radar.git
 cd concert-radar
 ```
 

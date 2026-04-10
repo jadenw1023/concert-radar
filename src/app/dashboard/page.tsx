@@ -17,27 +17,32 @@ export default function Dashboard() {
   const [concerts, setConcerts] = useState<Concert[]>([]);
 
   useEffect(() => {
-    async function fetchDashboardData() {
-      try {
-        const response = await fetch("/api/spotify/top-artists");
-        if (!response.ok) throw new Error("Failed to fetch top artists");
-        const data = await response.json();
-        setTopArtists(data.items);
+  if (!session) {
+    setLoading(false);
+    return;
+  }
 
-        const concertNames = data.items.map((artist: Artist) => artist.name).join(",");
-        const concertResponse = await fetch(`/api/concerts/search?artists=${concertNames}`);
-        if (!concertResponse.ok) throw new Error("Failed to fetch concerts");
-        const concertData = await concertResponse.json();
-        setConcerts(concertData);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchDashboardData() {
+    try {
+      const response = await fetch("/api/spotify/top-artists");
+      if (!response.ok) throw new Error("Failed to fetch top artists");
+      const data = await response.json();
+      setTopArtists(data.items);
+
+      const concertNames = data.items.map((artist: Artist) => artist.name).join(",");
+      const concertResponse = await fetch(`/api/concerts/search?artists=${concertNames}`);
+      if (!concertResponse.ok) throw new Error("Failed to fetch concerts");
+      const concertData = await concertResponse.json();
+      setConcerts(concertData);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    fetchDashboardData();
-  }, []);
+  fetchDashboardData();
+}, [session]);
 
 if (!session) {
   return (

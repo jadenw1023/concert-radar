@@ -55,25 +55,30 @@ export async function GET(request: Request) {
     const events = data._embedded?.events || [];
 
     for (const event of events) {
-      await prisma.concert.create({
-        data: {
-          eventName: event.name,
-          dateTime: event.dates.start.localDate,
-          venueName: event._embedded.venues[0].name,
-          city: event._embedded.venues[0].city.name,
-          ticketUrl: event.url,
-          artistId: dbArtist.id,
-        },
-      });
-
-      concerts.push({
-        name: event.name,
-        date: event.dates.start.localDate,
+  try {
+    await prisma.concert.create({
+      data: {
+        eventName: event.name,
+        dateTime: event.dates.start.localDate,
         venueName: event._embedded.venues[0].name,
         city: event._embedded.venues[0].city.name,
-        url: event.url,
-      });
-    }
+        ticketUrl: event.url,
+        artistId: dbArtist.id,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to save concert:", error);
+    continue;
+  }
+
+  concerts.push({
+    name: event.name,
+    date: event.dates.start.localDate,
+    venueName: event._embedded.venues[0].name,
+    city: event._embedded.venues[0].city.name,
+    url: event.url,
+  });
+}
   }
 
   return NextResponse.json(concerts);

@@ -13,12 +13,13 @@ datasource db {
 }
 
 model User {
-  spotifyId   String   @id
-  name        String
-  email       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  topArtists  TopArtist[]
+  spotifyId          String   @id
+  name               String
+  email              String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  topArtists         TopArtist[]
+  notificationEmail  String?
 }
 
 model TopArtist {
@@ -33,12 +34,12 @@ model TopArtist {
 }
 
 model Concert {
-  id               String   @id @default(uuid())
-  eventName        String
-  venueName        String
-  city             String
-  dateTime         String
-  ticketUrl        String
-  topArtist        TopArtist @relation(fields: [artistId], references: [id])
-  artistId         String
+  id        String    @id @default(uuid())
+  eventName String
+  venueName String
+  city      String
+  dateTime  String
+  ticketUrl String
+  topArtist TopArtist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artistId  String
 }

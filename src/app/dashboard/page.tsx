@@ -15,48 +15,64 @@ export default function Dashboard() {
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [loading, setLoading] = useState(true);
   const [concerts, setConcerts] = useState<Concert[]>([]);
+  const [notificationEmail, setNotificationEmail] = useState("");
+  const [notificationStatus, setNotificationStatus] = useState("");
 
-  useEffect(() => {
-  if (!session) {
-    setLoading(false);
-    return;
-  }
-
-  async function fetchDashboardData() {
+  async function handleNotificationSubmit() {
     try {
-      const response = await fetch("/api/spotify/top-artists");
-      if (!response.ok) throw new Error("Failed to fetch top artists");
-      const data = await response.json();
-      setTopArtists(data.items);
+      const response = await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: notificationEmail }),
+      });
 
-      const concertNames = data.items.map((artist: Artist) => artist.name).join(",");
-      const concertResponse = await fetch(`/api/concerts/search?artists=${concertNames}`);
-      if (!concertResponse.ok) throw new Error("Failed to fetch concerts");
-      const concertData = await concertResponse.json();
-      setConcerts(concertData);
+      if (!response.ok) throw new Error("Failed to save notification preference");
+
+      setNotificationStatus("Notification email saved!");
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
+      setNotificationStatus("Failed to save email. Please try again.");
     }
   }
 
-  fetchDashboardData();
-}, [session]);
+  useEffect(() => {
+    if (!session) {
+      setLoading(false);
+      return;
+    }
 
-if (!session) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-      <p className="text-[#a1a1a1] text-lg">Please sign in to view your top artists.</p>
-      <Link
-  href="/"
-  className="text-[#1DB954] hover:underline"
->
-  Go to sign in
-</Link>
-    </div>
-  );
-}
+    async function fetchDashboardData() {
+      try {
+        const response = await fetch("/api/spotify/top-artists");
+        if (!response.ok) throw new Error("Failed to fetch top artists");
+        const data = await response.json();
+        setTopArtists(data.items);
+
+        const concertNames = data.items.map((artist: Artist) => artist.name).join(",");
+        const concertResponse = await fetch(`/api/concerts/search?artists=${concertNames}`);
+        if (!concertResponse.ok) throw new Error("Failed to fetch concerts");
+        const concertData = await concertResponse.json();
+        setConcerts(concertData);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, [session]);
+
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-[#a1a1a1] text-lg">Please sign in to view your top artists.</p>
+        <Link href="/" className="text-[#1DB954] hover:underline">
+          Go to sign in
+        </Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -130,6 +146,29 @@ if (!session) {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Concert Notifications</h2>
+        <p className="text-[#a1a1a1] mb-4">Get notified when concerts are announced for your top artists.</p>
+        {notificationStatus && (
+          <p className="text-[#1DB954] mb-4">{notificationStatus}</p>
+        )}
+        <div className="flex items-center gap-4">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={notificationEmail}
+            onChange={(e) => setNotificationEmail(e.target.value)}
+            className="flex-1 px-4 py-2 rounded-lg bg-[#282828] text-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
+          />
+          <button
+            onClick={handleNotificationSubmit}
+            className="px-6 py-2 bg-[#1DB954] text-black font-semibold rounded-lg hover:bg-[#17a44c] transition-colors cursor-pointer"
+          >
+            Save
+          </button>
+        </div>
       </section>
     </div>
   );

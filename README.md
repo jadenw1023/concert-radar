@@ -126,4 +126,4 @@ Visit `http://127.0.0.1:3000`
 
 - Spotify Developer Mode limits the app to 5 authorized test users
 - Ticketmaster keyword search can return loosely matched results (e.g., "Pop Smoke" matching "Blackberry Smoke")
-- Concert notifications are triggered manually; background job automation is planned
+- Concert notifications are sent daily at 9:00 AM UTC via Vercel Cron Jobs

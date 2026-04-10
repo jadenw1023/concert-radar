@@ -22,10 +22,19 @@ export async function GET() {
 
   const data = await response.json();
 
-  // Delete old artists for this user
-  await prisma.topArtist.deleteMany({
-    where: { userId: session.spotifyId },
-  });
+  // Delete old concerts for this user's artists
+await prisma.concert.deleteMany({
+  where: {
+    topArtist: {
+      userId: session.spotifyId,
+    },
+  },
+});
+
+// Delete old artists for this user
+await prisma.topArtist.deleteMany({
+  where: { userId: session.spotifyId },
+});
 
   // Save new artists
   for (const artist of data.items) {

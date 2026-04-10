@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Concert } from "@/types/ticketmaster";
+import Link from "next/link";
 
 interface Artist {
   id: string;
@@ -38,13 +39,19 @@ export default function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  if (!session) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-[#a1a1a1] text-lg">Please sign in to view your top artists.</p>
-      </div>
-    );
-  }
+if (!session) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <p className="text-[#a1a1a1] text-lg">Please sign in to view your top artists.</p>
+      <Link
+  href="/"
+  className="text-[#1DB954] hover:underline"
+>
+  Go to sign in
+</Link>
+    </div>
+  );
+}
 
   if (loading) {
     return (

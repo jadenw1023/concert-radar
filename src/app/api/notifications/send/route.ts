@@ -2,7 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import { NextResponse } from "next/server";
 
-export async function POST() {
+export async function POST(request: Request) {
+
+        const authHeader = request.headers.get("authorization");
+if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  return new Response("Unauthorized", { status: 401 });
+}
+
        const users = await prisma.user.findMany({
         where: {
             notificationEmail: {
